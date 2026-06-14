@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glowdown — Facebook Video Saver</title>
+  <meta name="description" content="Paste a Facebook video link and download it in the quality you want. Free, fast, no sign-up." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+
+  <script>
+    // Apply saved theme before first paint to avoid a flash of the wrong colors.
+    (function () {
+      var saved = localStorage.getItem('glowdown-theme');
+      if (saved === 'light' || saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    })();
+  </script>
+</head>
+<body>
+
+  <div class="aurora" aria-hidden="true">
+    <span class="blob blob-a"></span>
+    <span class="blob blob-b"></span>
+    <span class="blob blob-c"></span>
+  </div>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="logo" href="#top">
+        <span class="logo-mark">G</span>
+        Glowdown
+      </a>
+
+      <nav class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#faq">FAQ</a>
+        <a href="#terms">Terms</a>
+      </nav>
+
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch color theme">
+        <svg class="icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>
+        </svg>
+        <svg class="icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.4A9 9 0 1 1 11.6 3a7.2 7.2 0 0 0 9.4 9.4z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="top">
+      <span class="eyebrow">Facebook video downloader</span>
+      <h1>Paste a link.<br>Get the video.<br><span class="accent-text">That's the whole app.</span></h1>
+      <p class="lead">
+        Drop in a link to any public Facebook video, reel, or watch page.
+        Glowdown finds every quality available so you can save it straight to your device —
+        no account, no watermark, no waiting rooms.
+      </p>
+
+      <form class="download-form" id="downloadForm" autocomplete="off">
+        <input
+          type="url"
+          id="videoUrl"
+          name="videoUrl"
+          inputmode="url"
+          placeholder="https://www.facebook.com/share/v/..."
+          aria-label="Facebook video link"
+          required
+        />
+        <button type="submit" id="downloadBtn">
+          <span class="btn-label">Get video</span>
+          <span class="btn-spinner" aria-hidden="true"></span>
+        </button>
+      </form>
+      <p class="hint">Works with facebook.com and fb.watch links for public posts, videos and reels.</p>
+
+      <div class="result" id="result" role="status" aria-live="polite" hidden></div>
+    </section>
+
+    <section class="steps" id="how">
+      <h2>How it works</h2>
+      <div class="steps-grid">
+        <article class="step-card">
+          <span class="step-number">01</span>
+          <h3>Copy the link</h3>
+          <p>Open the video on Facebook, tap <strong>Share</strong>, then <strong>Copy link</strong>.</p>
+        </article>
+        <article class="step-card">
+          <span class="step-number">02</span>
+          <h3>Paste it above</h3>
+          <p>Drop the link into the box and select <strong>Get video</strong>.</p>
+        </article>
+        <article class="step-card">
+          <span class="step-number">03</span>
+          <h3>Save your pick</h3>
+          <p>Choose a quality from the list and it downloads to your device.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="features-grid">
+        <article class="feature-card">
+          <span class="feature-icon">⚡</span>
+          <h3>Quick fetching</h3>
+          <p>Links are processed in a few seconds, even on slower connections.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon">🎚️</span>
+          <h3>Pick your quality</h3>
+          <p>See every available resolution and choose what fits your storage.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon">📱</span>
+          <h3>Phone or desktop</h3>
+          <p>The page adapts to whatever screen you're holding it on.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon">🗑️</span>
+          <h3>Nothing kept</h3>
+          <p>Glowdown doesn't store your links or videos after the download starts.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="faq" id="faq">
+      <h2>Frequently asked questions</h2>
+      <div class="faq-list">
+
+        <details class="faq-item">
+          <summary>Is Glowdown free to use?</summary>
+          <p>Yes. Pasting a link and downloading a video doesn't cost anything.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>Can I download private or friends-only videos?</summary>
+          <p>No. Glowdown can only read videos that are publicly visible on Facebook. Private, friends-only, or removed videos won't load.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>What video quality can I get?</summary>
+          <p>Glowdown shows every quality Facebook makes available for that video, usually including HD and SD options. Some older or short clips may only have one quality.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>Why did fetching a video fail?</summary>
+          <p>This usually means the link is private, the video was deleted, or the link format wasn't recognized. Open the video on Facebook, use Share → Copy link, and try the fresh link.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>Is downloading Facebook videos allowed?</summary>
+          <p>Facebook's own terms generally restrict downloading content you don't own. Only save videos you have the right to use — your own uploads, content shared under a license that allows it, or videos you have permission from the creator to keep. See the Terms section below for more.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>Do you store the videos I download?</summary>
+          <p>No. Glowdown asks Facebook's servers for a direct link and hands it to your browser — nothing is saved on our side.</p>
+        </details>
+
+      </div>
+    </section>
+
+    <section class="terms" id="terms">
+      <h2>Terms &amp; responsible use</h2>
+      <div class="terms-body">
+        <p>
+          Glowdown is a small utility that helps you fetch a direct download link for
+          <strong>publicly visible</strong> Facebook videos. By using it, you agree to the points below.
+        </p>
+        <ul>
+          <li><strong>You're responsible for what you download.</strong> Only save videos you own, that you've been given permission to keep, or that are licensed for reuse. Copyright law and Facebook's own terms still apply to whatever you download here.</li>
+          <li><strong>No private content.</strong> This tool will not and cannot fetch private, friends-only, or otherwise restricted videos.</li>
+          <li><strong>No guarantees.</strong> Glowdown depends on a third-party service to read video links, so availability and accuracy aren't guaranteed. Links may occasionally fail or stop working without notice.</li>
+          <li><strong>No storage, no accounts.</strong> We don't create user accounts, and we don't keep copies of the links or videos you fetch.</li>
+          <li><strong>Fair use only.</strong> Please don't use this tool to mass-download content, redistribute creators' work without credit, or bypass paid or restricted content.</li>
+        </ul>
+        <p class="muted">
+          Glowdown isn't affiliated with or endorsed by Facebook or Meta Platforms, Inc.
+          "Facebook" is a trademark of Meta Platforms, Inc.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>© <span id="year"></span> Glowdown</span>
+      <nav class="footer-links">
+        <a href="#how">How it works</a>
+        <a href="#faq">FAQ</a>
+        <a href="#terms">Terms</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
