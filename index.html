@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glowdown — Facebook Video Saver</title>
+  <meta name="description" content="Paste a Facebook video link and download it in the quality you want. Free, fast, no sign-up." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+  <style>
+/* ============================================================
+   Tokens
+   ============================================================ */
+:root {
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --primary: #6C4CFB;
+  --primary-light: #9C7BFF;
+  --accent: #FF5C8A;
+  --secondary: #00D9C0;
+
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  --gradient: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+
+  --container: 880px;
+  --transition: 200ms ease;
+}
+
+/* Dark theme (default) */
+:root,
+[data-theme="dark"] {
+  --bg: #14101f;
+  --bg-elevated: #1c1730;
+  --surface: #221b38;
+  --surface-2: #2a2244;
+  --text: #f5f2ff;
+  --text-muted: #aea3cf;
+  --border: rgba(255, 255, 255, 0.08);
+  --primary-soft: rgba(108, 76, 251, 0.18);
+  --shadow: 0 24px 60px -24px rgba(108, 76, 251, 0.55);
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --bg: #f7f5ff;
+  --bg-elevated: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f1edff;
+  --text: #1c1830;
+  --text-muted: #6b6285;
+  --border: rgba(28, 24, 48, 0.08);
+  --primary-soft: rgba(108, 76, 251, 0.10);
+  --shadow: 0 24px 60px -28px rgba(108, 76, 251, 0.35);
+}
+
+/* ============================================================
+   Reset & base
+   ============================================================ */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  transition: background var(--transition), color var(--transition);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  line-height: 1.15;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+main {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   Aurora background
+   ============================================================ */
+.aurora {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.5;
+  will-change: transform;
+}
+
+[data-theme="light"] .blob {
+  opacity: 0.35;
+}
+
+.blob-a {
+  width: 480px;
+  height: 480px;
+  top: -160px;
+  left: -120px;
+  background: var(--primary);
+  animation: drift-a 26s ease-in-out infinite alternate;
+}
+
+.blob-b {
+  width: 420px;
+  height: 420px;
+  top: 10%;
+  right: -160px;
+  background: var(--accent);
+  animation: drift-b 32s ease-in-out infinite alternate;
+}
+
+.blob-c {
+  width: 380px;
+  height: 380px;
+  bottom: -180px;
+  left: 30%;
+  background: var(--secondary);
+  animation: drift-c 30s ease-in-out infinite alternate;
+}
+
+@keyframes drift-a {
+  to { transform: translate(80px, 60px) scale(1.1); }
+}
+@keyframes drift-b {
+  to { transform: translate(-60px, 80px) scale(1.05); }
+}
+@keyframes drift-c {
+  to { transform: translate(60px, -40px) scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob { animation: none; }
+  html { scroll-behavior: auto; }
+}
+
+/* ============================================================
+   Header / nav
+   ============================================================ */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-inner {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+
+.logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--gradient);
+  color: #fff;
+  font-size: 1rem;
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.nav-links a {
+  color: var(--text-muted);
+  transition: color var(--transition);
+}
+
+.nav-links a:hover {
+  color: var(--text);
+}
+
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.theme-toggle:hover {
+  border-color: var(--primary);
+  transform: rotate(12deg);
+}
+
+.theme-toggle .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.icon-moon { display: none; }
+[data-theme="light"] .icon-sun { display: none; }
+[data-theme="light"] .icon-moon { display: block; }
+
+/* ============================================================
+   Hero
+   ============================================================ */
+.hero {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 72px 24px 56px;
+  text-align: center;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  background: var(--primary-soft);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.accent-text {
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lead {
+  max-width: 560px;
+  margin: 22px auto 36px;
+  font-size: 1.05rem;
+}
+
+/* ----- Download form ----- */
+.download-form {
+  display: flex;
+  gap: 12px;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+#videoUrl {
+  flex: 1;
+  min-width: 0;
+  height: 56px;
+  padding: 0 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+#videoUrl::placeholder {
+  color: var(--text-muted);
+}
+
+#videoUrl:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+#downloadBtn {
+  flex-shrink: 0;
+  height: 56px;
+  padding: 0 28px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--gradient);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: var(--shadow);
+  transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+}
+
+#downloadBtn:hover {
+  transform: translateY(-1px);
+}
+
+#downloadBtn:active {
+  transform: translateY(0);
+}
+
+#downloadBtn:disabled {
+  opacity: 0.75;
+  cursor: progress;
+}
+
+.btn-spinner {
+  display: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+}
+
+#downloadBtn.is-loading .btn-spinner {
+  display: inline-block;
+  animation: spin 0.7s linear infinite;
+}
+
+#downloadBtn.is-loading .btn-label {
+  opacity: 0.8;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.hint {
+  margin-top: 14px;
+  font-size: 0.85rem;
+}
+
+/* ----- Result panel ----- */
+.result {
+  margin: 32px auto 0;
+  max-width: 620px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+}
+
+.result[hidden] {
+  display: none;
+}
+
+.result-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+}
+
+.result-state.error {
+  color: var(--accent);
+}
+
+.result-spinner {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 2px solid var(--primary-soft);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.result-media {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.result-thumb {
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+.result-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.result-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.result-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 0.92rem;
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.result-link:hover {
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.result-link .tag {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.result-raw {
+  margin-top: 18px;
+}
+
+.result-raw summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.result-raw pre {
+  margin-top: 10px;
+  padding: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   Steps
+   ============================================================ */
+.steps {
+  max-width: var(--container);
+  margin: 40px auto 0;
+  padding: 0 24px;
+}
+
+.steps h2,
+.features h2,
+.faq h2,
+.terms h2 {
+  text-align: center;
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  margin-bottom: 32px;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.step-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 26px;
+}
+
+.step-number {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--secondary);
+  margin-bottom: 14px;
+}
+
+.step-card h3 {
+  font-size: 1.05rem;
+  margin-bottom: 8px;
+}
+
+.step-card p {
+  font-size: 0.92rem;
+}
+
+.step-card strong {
+  color: var(--text);
+}
+
+/* ============================================================
+   Features
+   ============================================================ */
+.features {
+  max-width: var(--container);
+  margin: 64px auto 0;
+  padding: 0 24px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  text-align: center;
+}
+
+.feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  font-size: 1.3rem;
+  margin-bottom: 14px;
+}
+
+.feature-card h3 {
+  font-size: 0.98rem;
+  margin-bottom: 6px;
+}
+
+.feature-card p {
+  font-size: 0.88rem;
+}
+
+/* ============================================================
+   FAQ
+   ============================================================ */
+.faq {
+  max-width: 720px;
+  margin: 72px auto 0;
+  padding: 0 24px;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.faq-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 6px 20px;
+}
+
+.faq-item summary {
+  cursor: pointer;
+  padding: 16px 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.98rem;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::after {
+  content: '+';
+  font-size: 1.4rem;
+  color: var(--primary-light);
+  font-family: var(--font-display);
+  transition: transform var(--transition);
+}
+
+.faq-item[open] summary::after {
+  transform: rotate(45deg);
+}
+
+.faq-item p {
+  padding-bottom: 18px;
+  font-size: 0.92rem;
+}
+
+/* ============================================================
+   Terms
+   ============================================================ */
+.terms {
+  max-width: 720px;
+  margin: 72px auto 0;
+  padding: 0 24px;
+}
+
+.terms-body {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+}
+
+.terms-body p {
+  margin-bottom: 14px;
+  font-size: 0.95rem;
+}
+
+.terms-body ul {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-left: 0;
+}
+
+.terms-body li {
+  list-style: none;
+  font-size: 0.92rem;
+  padding-left: 22px;
+  position: relative;
+}
+
+.terms-body li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gradient);
+}
+
+.terms-body strong {
+  color: var(--text);
+}
+
+.terms-body .muted {
+  font-size: 0.8rem;
+  margin-bottom: 0;
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.footer {
+  margin-top: 80px;
+  border-top: 1px solid var(--border);
+}
+
+.footer-inner {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 28px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.footer-links {
+  display: flex;
+  gap: 20px;
+}
+
+.footer-links a {
+  color: var(--text-muted);
+  transition: color var(--transition);
+}
+
+.footer-links a:hover {
+  color: var(--text);
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 760px) {
+  .nav-links {
+    display: none;
+  }
+
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
+  .hero {
+    padding: 48px 20px 40px;
+  }
+
+  .download-form {
+    flex-direction: column;
+  }
+
+  #videoUrl,
+  #downloadBtn {
+    width: 100%;
+    height: 54px;
+    font-size: 1rem;
+  }
+
+  .result-media {
+    flex-direction: column;
+  }
+
+  .result-thumb {
+    width: 100%;
+    height: 160px;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+  </style>
+
+  <script>
+    // Apply saved theme before first paint to avoid a flash of the wrong colors.
+    (function () {
+      var saved = localStorage.getItem('glowdown-theme');
+      if (saved === 'light' || saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    })();
+  </script>
+</head>
+<body>
+
+  <div class="aurora" aria-hidden="true">
+    <span class="blob blob-a"></span>
+    <span class="blob blob-b"></span>
+    <span class="blob blob-c"></span>
+  </div>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="logo" href="#top">
+        <span class="logo-mark">G</span>
+        Glowdown
+      </a>
+
+      <nav class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#faq">FAQ</a>
+        <a href="#terms">Terms</a>
+      </nav>
+
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch color theme">
+        <svg class="icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>
+        </svg>
+        <svg class="icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.4A9 9 0 1 1 11.6 3a7.2 7.2 0 0 0 9.4 9.4z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="top">
+      <span class="eyebrow">Facebook video downloader</span>
+      <h1>Paste a link.<br>Get the video.<br><span class="accent-text">That's the whole app.</span></h1>
+      <p class="lead">
+        Drop in a link to any public Facebook video, reel, or watch page.
+        Glowdown finds every quality available so you can save it straight to your device —
+        no account, no watermark, no waiting rooms.
+      </p>
+
+      <form class="download-form" id="downloadForm" autocomplete="off">
+        <input
+          type="url"
+          id="videoUrl"
+          name="videoUrl"
+          inputmode="url"
+          placeholder="https://www.facebook.com/share/v/..."
+          aria-label="Facebook video link"
+          required
+        />
+        <button type="submit" id="downloadBtn">
+          <span class="btn-label">Get video</span>
+          <span class="btn-spinner" aria-hidden="true"></span>
+        </button>
+      </form>
+      <p class="hint">Works with facebook.com and fb.watch links for public posts, videos and reels.</p>
+
+      <div class="result" id="result" role="status" aria-live="polite" hidden></div>
+    </section>
+
+    <section class="steps" id="how">
+      <h2>How it works</h2>
+      <div class="steps-grid">
+        <article class="step-card">
+          <span class="step-number">01</span>
+          <h3>Copy the link</h3>
+          <p>Open the video on Facebook, tap <strong>Share</strong>, then <strong>Copy link</strong>.</p>
+        </article>
+        <article class="step-card">
+          <span class="step-number">02</span>
+          <h3>Paste it above</h3>
+          <p>Drop the link into the box and select <strong>Get video</strong>.</p>
+        </article>
+        <article class="step-card">
+          <span class="step-number">03</span>
+          <h3>Save your pick</h3>
+          <p>Choose a quality from the list and it downloads to your device.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="features-grid">
+        <article class="feature-card">
+          <span class="feature-icon">⚡</span>
+          <h3>Quick fetching</h3>
+          <p>Links are processed in a few seconds, even on slower connections.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon">🎚️</span>
+          <h3>Pick your quality</h3>
+          <p>See every available resolution and choose what fits your storage.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon">📱</span>
+          <h3>Phone or desktop</h3>
+          <p>The page adapts to whatever screen you're holding it on.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon">🗑️</span>
+          <h3>Nothing kept</h3>
+          <p>Glowdown doesn't store your links or videos after the download starts.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="faq" id="faq">
+      <h2>Frequently asked questions</h2>
+      <div class="faq-list">
+
+        <details class="faq-item">
+          <summary>Is Glowdown free to use?</summary>
+          <p>Yes. Pasting a link and downloading a video doesn't cost anything.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>Can I download private or friends-only videos?</summary>
+          <p>No. Glowdown can only read videos that are publicly visible on Facebook. Private, friends-only, or removed videos won't load.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>What video quality can I get?</summary>
+          <p>Glowdown shows every quality Facebook makes available for that video, usually including HD and SD options. Some older or short clips may only have one quality.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>Why did fetching a video fail?</summary>
+          <p>This usually means the link is private, the video was deleted, or the link format wasn't recognized. Open the video on Facebook, use Share → Copy link, and try the fresh link.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>Is downloading Facebook videos allowed?</summary>
+          <p>Facebook's own terms generally restrict downloading content you don't own. Only save videos you have the right to use — your own uploads, content shared under a license that allows it, or videos you have permission from the creator to keep. See the Terms section below for more.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>Do you store the videos I download?</summary>
+          <p>No. Glowdown asks Facebook's servers for a direct link and hands it to your browser — nothing is saved on our side.</p>
+        </details>
+
+      </div>
+    </section>
+
+    <section class="terms" id="terms">
+      <h2>Terms &amp; responsible use</h2>
+      <div class="terms-body">
+        <p>
+          Glowdown is a small utility that helps you fetch a direct download link for
+          <strong>publicly visible</strong> Facebook videos. By using it, you agree to the points below.
+        </p>
+        <ul>
+          <li><strong>You're responsible for what you download.</strong> Only save videos you own, that you've been given permission to keep, or that are licensed for reuse. Copyright law and Facebook's own terms still apply to whatever you download here.</li>
+          <li><strong>No private content.</strong> This tool will not and cannot fetch private, friends-only, or otherwise restricted videos.</li>
+          <li><strong>No guarantees.</strong> Glowdown depends on a third-party service to read video links, so availability and accuracy aren't guaranteed. Links may occasionally fail or stop working without notice.</li>
+          <li><strong>No storage, no accounts.</strong> We don't create user accounts, and we don't keep copies of the links or videos you fetch.</li>
+          <li><strong>Fair use only.</strong> Please don't use this tool to mass-download content, redistribute creators' work without credit, or bypass paid or restricted content.</li>
+        </ul>
+        <p class="muted">
+          Glowdown isn't affiliated with or endorsed by Facebook or Meta Platforms, Inc.
+          "Facebook" is a trademark of Meta Platforms, Inc.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>© <span id="year"></span> Glowdown</span>
+      <nav class="footer-links">
+        <a href="#how">How it works</a>
+        <a href="#faq">FAQ</a>
+        <a href="#terms">Terms</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+// ---------------------------------------------------------------
+// Config — your RapidAPI key (from the curl snippet you shared)
+// ---------------------------------------------------------------
+const RAPIDAPI_HOST = 'facebook-video-downloader14.p.rapidapi.com';
+const RAPIDAPI_KEY = '2a9e06d32fmsh5b23e39f0513d8dp1877f0jsn007369f6b31d';
+
+// ---------------------------------------------------------------
+// Theme toggle (persisted in localStorage)
+// ---------------------------------------------------------------
+const root = document.documentElement;
+const themeToggle = document.getElementById('themeToggle');
+
+themeToggle.addEventListener('click', () => {
+  const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('glowdown-theme', next);
+});
+
+// ---------------------------------------------------------------
+// Footer year
+// ---------------------------------------------------------------
+const yearEl = document.getElementById('year');
+if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+// ---------------------------------------------------------------
+// Download form
+// ---------------------------------------------------------------
+const form = document.getElementById('downloadForm');
+const input = document.getElementById('videoUrl');
+const btn = document.getElementById('downloadBtn');
+const result = document.getElementById('result');
+
+function isFacebookUrl(url) {
+  try {
+    const { hostname } = new URL(url);
+    return /(^|\.)(facebook\.com|fb\.watch|fb\.com)$/i.test(hostname);
+  } catch {
+    return false;
+  }
+}
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const url = input.value.trim();
+  if (!url) return;
+
+  if (!isFacebookUrl(url)) {
+    showError("That doesn't look like a Facebook link. Copy the link from the Share menu and try again.");
+    return;
+  }
+
+  setLoading(true);
+  showLoading();
+
+  try {
+    const body = new URLSearchParams();
+    body.append('url', url);
+
+    const res = await fetch(`https://${RAPIDAPI_HOST}/index.php`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'x-rapidapi-host': RAPIDAPI_HOST,
+        'x-rapidapi-key': RAPIDAPI_KEY,
+      },
+      body: body.toString(),
+    });
+
+    if (res.status === 429) {
+      showError('Free quota for this API has run out for now. Try again later.');
+      return;
+    }
+
+    if (!res.ok) {
+      showError(`Could not fetch this video (status ${res.status}). Double-check the link and try again.`);
+      return;
+    }
+
+    const data = await res.json();
+    renderResult(data);
+  } catch (err) {
+    showError('Could not reach the API. This can happen if the browser blocks cross-site requests (CORS) — check the console for details.');
+  } finally {
+    setLoading(false);
+  }
+});
+
+function setLoading(isLoading) {
+  btn.disabled = isLoading;
+  btn.classList.toggle('is-loading', isLoading);
+}
+
+function showLoading() {
+  result.hidden = false;
+  result.innerHTML = `
+    <div class="result-state">
+      <span class="result-spinner" aria-hidden="true"></span>
+      <span>Fetching video info…</span>
+    </div>
+  `;
+}
+
+function showError(message) {
+  result.hidden = false;
+  result.innerHTML = `
+    <div class="result-state error">
+      <span>${escapeHtml(message)}</span>
+    </div>
+  `;
+}
+
+function renderResult(raw) {
+  const info = extractVideoInfo(raw);
+
+  if (!info.links.length) {
+    result.innerHTML = `
+      <div class="result-state error">
+        <span>No downloadable links were found in the response. Open "Raw API response" below to see what came back — the field names may need a small tweak in the script.</span>
+      </div>
+      ${rawBlock(raw)}
+    `;
+    return;
+  }
+
+  result.innerHTML = `
+    <div class="result-media">
+      ${info.thumbnail ? `<img class="result-thumb" src="${escapeHtml(info.thumbnail)}" alt="" loading="lazy" />` : ''}
+      <div>
+        <div class="result-title">${escapeHtml(info.title || 'Video found')}</div>
+        <div class="result-links">
+          ${info.links.map((link) => `
+            <a class="result-link" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" download>
+              <span>${escapeHtml(link.label)}</span>
+              <span class="tag">Download</span>
+            </a>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+    ${rawBlock(raw)}
+  `;
+}
+
+function rawBlock(raw) {
+  return `
+    <details class="result-raw">
+      <summary>Raw API response</summary>
+      <pre>${escapeHtml(JSON.stringify(raw, null, 2))}</pre>
+    </details>
+  `;
+}
+
+// Different RapidAPI downloader endpoints return slightly different
+// JSON shapes. This walks the response and tries the common patterns
+// so the page works without knowing the exact shape in advance.
+function extractVideoInfo(raw) {
+  const info = { title: '', thumbnail: '', links: [] };
+  if (!raw || typeof raw !== 'object') return info;
+
+  const containers = [raw, raw.data, raw.result, raw.response].filter(
+    (o) => o && typeof o === 'object'
+  );
+
+  for (const obj of containers) {
+    info.title = info.title || obj.title || obj.desc || obj.description || '';
+    info.thumbnail =
+      info.thumbnail || obj.thumbnail || obj.thumb || obj.cover || obj.image || '';
+
+    for (const key of ['medias', 'links', 'urls', 'formats', 'videos', 'media']) {
+      const arr = obj[key];
+      if (Array.isArray(arr)) {
+        arr.forEach((item, i) => {
+          const url =
+            typeof item === 'string' ? item : item.url || item.link || item.download_url;
+          if (url) {
+            const label =
+              (typeof item === 'object' &&
+                (item.quality || item.label || item.resolution || item.type)) ||
+              `Option ${i + 1}`;
+            info.links.push({ url, label: String(label) });
+          }
+        });
+      }
+    }
+
+    for (const key of [
+      'hd', 'sd', 'hd_url', 'sd_url', 'high', 'low',
+      'download_url', 'download', 'video', 'video_url',
+    ]) {
+      const val = obj[key];
+      if (typeof val === 'string' && val.startsWith('http')) {
+        info.links.push({ url: val, label: key.replace(/_/g, ' ').toUpperCase() });
+      }
+    }
+  }
+
+  // Last resort: scan the whole response for direct media URLs.
+  if (!info.links.length) {
+    (function walk(obj) {
+      if (!obj || typeof obj !== 'object') return;
+      for (const [key, val] of Object.entries(obj)) {
+        if (typeof val === 'string' && /^https?:\/\//.test(val) && /\.(mp4|m3u8)(\?|$)/i.test(val)) {
+          info.links.push({ url: val, label: key.toUpperCase() });
+        } else if (typeof val === 'object') {
+          walk(val);
+        }
+      }
+    })(raw);
+  }
+
+  const seen = new Set();
+  info.links = info.links.filter((link) => {
+    if (seen.has(link.url)) return false;
+    seen.add(link.url);
+    return true;
+  });
+
+  return info;
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[c]);
+}
+
+  </script>
+</body>
+</html>
